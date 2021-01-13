@@ -71,7 +71,9 @@ public class ProlificSerialDriver implements UsbSerialDriver {
         private static final int USB_RECIP_INTERFACE = 0x01;
 
         private static final int PROLIFIC_VENDOR_READ_REQUEST = 0x01;
+        private static final int PROLIFIC_VENDOR_READ_NREQUEST = 0x81;
         private static final int PROLIFIC_VENDOR_WRITE_REQUEST = 0x01;
+        private static final int PROLIFIC_VENDOR_WRITE_NREQUEST = 0x80;
 
         private static final int PROLIFIC_VENDOR_OUT_REQTYPE = UsbConstants.USB_DIR_OUT
                 | UsbConstants.USB_TYPE_VENDOR;
@@ -106,6 +108,9 @@ public class ProlificSerialDriver implements UsbSerialDriver {
         private static final int DEVICE_TYPE_HX = 0;
         private static final int DEVICE_TYPE_0 = 1;
         private static final int DEVICE_TYPE_1 = 2;
+        private static final int DEVICE_TYPE_HXN = 3;
+
+        private static final int READ_TYPE_HX_STATUS = 0x8080;
 
         private int mDeviceType = DEVICE_TYPE_HX;
 
@@ -161,13 +166,13 @@ public class ProlificSerialDriver implements UsbSerialDriver {
         private final byte[] vendorIn(int value, int index, int length)
                 throws IOException {
             return inControlTransfer(PROLIFIC_VENDOR_IN_REQTYPE,
-                    PROLIFIC_VENDOR_READ_REQUEST, value, index, length);
+                    mDeviceType == DEVICE_TYPE_HXN ? PROLIFIC_VENDOR_READ_NREQUEST : PROLIFIC_VENDOR_READ_REQUEST, value, index, length);
         }
 
         private final void vendorOut(int value, int index, byte[] data)
                 throws IOException {
             outControlTransfer(PROLIFIC_VENDOR_OUT_REQTYPE,
-                    PROLIFIC_VENDOR_WRITE_REQUEST, value, index, data);
+                    mDeviceType == DEVICE_TYPE_HXN ? PROLIFIC_VENDOR_WRITE_NREQUEST : PROLIFIC_VENDOR_WRITE_REQUEST, value, index, data);
         }
 
         private void resetDevice() throws IOException {
@@ -181,17 +186,19 @@ public class ProlificSerialDriver implements UsbSerialDriver {
         }
 
         private void doBlackMagic() throws IOException {
-            vendorIn(0x8484, 0, 1);
-            vendorOut(0x0404, 0, null);
-            vendorIn(0x8484, 0, 1);
-            vendorIn(0x8383, 0, 1);
-            vendorIn(0x8484, 0, 1);
-            vendorOut(0x0404, 1, null);
-            vendorIn(0x8484, 0, 1);
-            vendorIn(0x8383, 0, 1);
-            vendorOut(0, 1, null);
-            vendorOut(1, 0, null);
-            vendorOut(2, (mDeviceType == DEVICE_TYPE_HX) ? 0x44 : 0x24, null);
+            if(mDeviceType != DEVICE_TYPE_HXN) {
+                vendorIn(0x8484, 0, 1);
+                vendorOut(0x0404, 0, null);
+                vendorIn(0x8484, 0, 1);
+                vendorIn(0x8383, 0, 1);
+                vendorIn(0x8484, 0, 1);
+                vendorOut(0x0404, 1, null);
+                vendorIn(0x8484, 0, 1);
+                vendorIn(0x8383, 0, 1);
+                vendorOut(0, 1, null);
+                vendorOut(1, 0, null);
+                vendorOut(2, (mDeviceType == DEVICE_TYPE_HX) ? 0x44 : 0x24, null);
+            }
         }
 
         private void setControlLines(int newControlLinesValue) throws IOException {
@@ -315,6 +322,18 @@ public class ProlificSerialDriver implements UsbSerialDriver {
                           Log.w(TAG, "Could not detect PL2303 subtype, "
                               + "Assuming that it is a HX device");
                           mDeviceType = DEVICE_TYPE_HX;
+                        }
+
+                        if(mDeviceType == DEVICE_TYPE_HX) {
+
+                            /* If the HX_STATUS request fails, the type is HXN */
+                            try {
+                                vendorIn(READ_TYPE_HX_STATUS, 0, 1);
+                            }
+                            catch(IOException e)
+                            {
+                                mDeviceType = DEVICE_TYPE_HXN;
+                            }
                         }
                     } catch (NoSuchMethodException e) {
                         Log.w(TAG, "Method UsbDeviceConnection.getRawDescriptors, "
@@ -551,6 +570,10 @@ public class ProlificSerialDriver implements UsbSerialDriver {
         final Map<Integer, int[]> supportedDevices = new LinkedHashMap<Integer, int[]>();
         supportedDevices.put(Integer.valueOf(UsbId.VENDOR_PROLIFIC),
                 new int[] { UsbId.PROLIFIC_PL2303, });
+
+        supportedDevices.put(Integer.valueOf(UsbId.VENDOR_PROLIFIC),
+                new int[] { UsbId.PROLIFIC_PL23C3, });
+
         return supportedDevices;
     }
 }

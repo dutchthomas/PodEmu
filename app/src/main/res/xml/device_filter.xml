@@ -84,7 +84,9 @@
     <!--
     VENDOR_PROLIFIC = 0x067b; 1659
     PROLIFIC_PL2303 = 0x2303; 8963
+    PROLIFIC_PL23C3 = 0x23C3; 9155
     -->
     <usb-device vendor-id="1659" product-id="8963" />
+    <usb-device vendor-id="1659" product-id="9155" />
 
 </resources>

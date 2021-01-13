@@ -63,6 +63,7 @@ public final class UsbId {
 
     public static final int VENDOR_PROLIFIC = 0x067b;
     public static final int PROLIFIC_PL2303 = 0x2303;
+    public static final int PROLIFIC_PL23C3 = 0x23c3;
 
     private UsbId() {
         throw new IllegalAccessError("Non-instantiable class.");

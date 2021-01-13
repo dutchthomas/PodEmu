@@ -90,7 +90,8 @@ public class SerialInterface_USBSerial extends SerialInterface_Common implements
         deviceList.put((UsbId.VENDOR_SILABS << 16) + UsbId.SILABS_CP2110, "SiLabs CP2110");
 
         deviceList.put((UsbId.VENDOR_PROLIFIC << 16) + UsbId.PROLIFIC_PL2303, "Prolific PL2303");
-        
+        deviceList.put((UsbId.VENDOR_PROLIFIC << 16) + UsbId.PROLIFIC_PL23C3, "Prolific PL23C3");
+
         
         // read buffer sizes
         deviceBufferSizes.put((UsbId.VENDOR_FTDI << 16) + UsbId.FTDI_FT232R, 128);
@@ -118,6 +119,7 @@ public class SerialInterface_USBSerial extends SerialInterface_Common implements
         deviceBufferSizes.put((UsbId.VENDOR_SILABS << 16) + UsbId.SILABS_CP2110, 480);
 
         deviceBufferSizes.put((UsbId.VENDOR_PROLIFIC << 16) + UsbId.PROLIFIC_PL2303, 258);
+        deviceBufferSizes.put((UsbId.VENDOR_PROLIFIC << 16) + UsbId.PROLIFIC_PL23C3, 258);
 
     }
 
